@@ -1,6 +1,10 @@
 import socket
+import contextlib
+from datetime import datetime
 
 import pika
+
+import db
 
 
 def resolve(hostname):
@@ -12,7 +16,16 @@ def resolve(hostname):
 
 def callback(ch, method, properties, body):
     message = body.decode()
-    print('{}|{}'.format(message, resolve(message)))
+    with contextlib.closing(db.get_db()) as db_:
+        cursor = db_.cursor()
+        ip = resolve(message)
+        now = datetime.now().timestamp()
+        cursor.execute(
+            'UPDATE records SET ip=?, last_refresh=? WHERE host=?',
+            (ip, now, message)
+        )
+        db_.commit()
+    print('{}|{}'.format(message, ip))
 
 
 def main():
