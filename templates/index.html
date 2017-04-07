@@ -40,5 +40,31 @@
         </div>
     </div>
 </div>
+
+<div class="container">
+    <div class="row">
+        <div class="col-xs-6 col-xs-offset-3 text-center">
+            <nav aria-label="...">
+                <ul class="pagination">
+                    {% if pagination.prev_page() %}
+                    <li><a href="/?page={{ pagination.prev_page() }}" aria-label="Previous"><span aria-hidden="true">«</span></a></li>
+                    {% endif %}
+
+                    {% for page in pagination %}
+                        {% if page.is_current %}
+                        <li class="active"><a href="/?page={{ page.number }}">{{ page.number }}<span class="sr-only">(current)</span></a></li>
+                        {% else %}
+                        <li><a href="/?page={{ page.number }}">{{ page.number }}</a></li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if pagination.next_page() %}
+                    <li><a href="/?page={{ pagination.next_page() }}" aria-label="Next"><span aria-hidden="true">»</span></a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
 </body>
 </html>
