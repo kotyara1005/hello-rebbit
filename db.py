@@ -1,47 +1,19 @@
 import sqlite3
 import contextlib
-from datetime import datetime
 
-import bs4
-import requests
-
-URL = 'https://domaintyper.com/top-websites/' \
-      'most-popular-websites-with-com-domain'
-DB_NAME = 'db.sqlite3'
+SELECT_LAST_RECORDS = 'SELECT host FROM records WHERE abs(last_refresh - ?) > ?'
+UPDATE_RECORDS = 'UPDATE records SET ip=?, last_refresh=? WHERE host=?'
+SELECT_PAGED_RECORDS = 'SELECT host, ip FROM records ' \
+                       'ORDER BY id LIMIT ? OFFSET ?'
 
 
-def fetch_domains():
-    """Download most popular domains and write them to file"""
-    response = requests.get(URL)
-    response.raise_for_status()
-    soup = bs4.BeautifulSoup(response.text, 'html.parser')
-    return [
-        row[1].get_text()
-        for row in (
-            row.find_all('td')
-            for row in soup.table.find_all('tr')
-        )
-        if len(row) == 3
-    ]
-
-
-def get_db():
+def db(db_name):
     """Opens a new database connection"""
-    rv = sqlite3.connect(DB_NAME)
+    rv = sqlite3.connect(db_name)
     rv.row_factory = sqlite3.Row
     return rv
 
 
-def init_db():
-    """Initializes the database.
-    >>> init_db()
-    """
-    with contextlib.closing(get_db()) as db:
-        cursor = db.cursor()
-        with open('schema.sql', mode='r') as file:
-            cursor.executescript(file.read())
-        cursor.executemany(
-            'INSERT INTO records(host, last_refresh) VALUES (?, ?)',
-            [(domain, datetime.now().timestamp()) for domain in fetch_domains()]
-        )
-        db.commit()
+def query(_db, _query, *args):
+    with contextlib.closing(_db.cursor()) as cursor:
+        yield from cursor.execute(_query, args)
