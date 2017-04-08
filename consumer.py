@@ -5,6 +5,7 @@ from datetime import datetime
 import pika
 
 import db
+import config
 
 
 def resolve(hostname):
@@ -16,14 +17,10 @@ def resolve(hostname):
 
 def callback(ch, method, properties, body):
     message = body.decode()
-    with contextlib.closing(db.get_db()) as db_:
-        cursor = db_.cursor()
+    with contextlib.closing(db.db(config.DB_NAME)) as db_:
         ip = resolve(message)
         now = datetime.now().timestamp()
-        cursor.execute(
-            'UPDATE records SET ip=?, last_refresh=? WHERE host=?',
-            (ip, now, message)
-        )
+        db.query(db_, db.UPDATE_RECORDS, ip, now, message)
         db_.commit()
     print('{}|{}'.format(message, ip))
 
@@ -34,7 +31,7 @@ def main():
 
     with connection:
         channel = connection.channel()
-
+        # TODO check RabbitMQ settings
         channel.exchange_declare(exchange='logs', type='fanout')
 
         result = channel.queue_declare(exclusive=True)

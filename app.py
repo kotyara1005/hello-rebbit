@@ -4,13 +4,16 @@ from collections import namedtuple
 from flask import Flask, request, render_template
 
 import db
+import config
 
 app = Flask(__name__)
+app.config.from_object(config)
 
 Page = namedtuple('Page', 'number is_current')
 
 
 class Pagination:
+    # TODO replace to utils
     """
     >>> p = Pagination(0, 10, 2)
     >>> list(p)
@@ -58,16 +61,17 @@ class Pagination:
 
 @app.route('/')
 def index():
-    with contextlib.closing(db.get_db()) as database:
+    with contextlib.closing(db.db(config.DB_NAME)) as database:
         limit = request.args.get('limit', 10, int)
         page = request.args.get('page', 1, int)
         if page < 1:
             page = 1
         offset = (page - 1) * limit
-        cursor = database.cursor()
-        domains = cursor.execute(
-            'SELECT host, ip FROM records ORDER BY id LIMIT ? OFFSET ?',
-            (limit, offset)
+        domains = db.query(
+            database,
+            db.SELECT_PAGED_RECORDS,
+            limit,
+            offset
         )
         pagination = Pagination(page, 10, 2)
         return render_template('index.html', query=domains, pagination=pagination)
@@ -77,10 +81,9 @@ if __name__ == '__main__':
     with contextlib.suppress(KeyboardInterrupt):
         app.run()
 
-# TODO pagination
-# TODO queries
 # TODO records
 # TODO ip view
 # TODO domain view
 # TODO utils
 # TODO tests
+# TODO manage

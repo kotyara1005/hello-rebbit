@@ -4,8 +4,7 @@ from datetime import datetime
 import pika
 
 import db
-
-BARRIER = 500
+import config
 
 
 def main():
@@ -16,13 +15,9 @@ def main():
 
     channel.exchange_declare(exchange='logs', type='fanout')
 
-    with contextlib.closing(db.get_db()) as db_:
-        cursor = db_.cursor()
+    with contextlib.closing(db.db(config.DB_NAME)) as db_:
         now = datetime.now().timestamp()
-        hosts = cursor.execute(
-            'SELECT host FROM records WHERE abs(last_refresh - ?) > ?',
-            (now, BARRIER)
-        )
+        hosts = db.query(db_, db.SELECT_LAST_RECORDS, now, config.BARRIER)
         for host in hosts:
             channel.basic_publish(exchange='logs', routing_key='', body=host[0])
             print(" [x] Sent %r" % host[0])
