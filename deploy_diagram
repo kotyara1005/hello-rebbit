@@ -1,0 +1,19 @@
+interface HTTP
+interface DNS
+component WebFace
+component TaskManager
+component Resolver
+component Commiter
+database Database
+queue Queue1
+queue Queue2
+
+Database --> TaskManager
+TaskManager -right-> Queue1
+Queue1 -right-> Resolver
+Resolver -right-> Queue2
+Queue2 -right-> Commiter
+Commiter --> Database
+Database -up-> WebFace
+HTTP - WebFace
+DNS -- Resolver

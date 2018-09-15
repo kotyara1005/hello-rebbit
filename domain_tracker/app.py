@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+"""Domain tracker webface"""
+
 import contextlib
 from collections import namedtuple
 
@@ -84,6 +87,6 @@ if __name__ == '__main__':
 # TODO records
 # TODO ip view
 # TODO domain view
-# TODO utils
 # TODO tests
 # TODO manage
+# TODO utils

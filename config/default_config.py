@@ -2,5 +2,12 @@
 
 DEBUG = True
 STATIC_FOLDER = None
-DB_NAME = 'db.sqlite3'
-BARRIER = 500
+DELAY = 500
+
+DATABASE = dict(
+    host='localhost',
+    port=None,
+    user='postgres',
+    password='123',
+    database='domain_tracker',
+)
